@@ -485,6 +485,24 @@ public class PetriSim implements Cloneable, Serializable {
     }
 
     /**
+     *
+     * @param dt - the time interval
+     */
+    public void doStatistics(double dt, double delta) {
+        if (dt > 0) {
+            for (PetriP position : listPositionsForStatistica) {
+                position.changeMean(dt);
+                position.sumOfMarksMultiplyByTimeDelta(delta);
+            }
+        }
+        if (dt > 0) {
+            for (PetriT transition : listT) {
+                transition.changeMean(dt);
+            }
+        }
+    }
+
+    /**
      * This method use for simulating Petri-object
      */
     public void go() {

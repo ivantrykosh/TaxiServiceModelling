@@ -170,8 +170,10 @@ public class PetriObjModel implements Serializable, Cloneable  {
             if (isStatistics() == true) {
                 for (PetriSim e : getListObj()) {
                    if (min > 0) {
-                        if(min<this.getSimulationTime())
-                            e.doStatistics((min - this.getCurrentTime()) / min); //статистика за час "дельта т", для спільних позицій потрібно статистику збирати тільки один раз!!!
+                        if(min<this.getSimulationTime()) {
+//                            e.doStatistics((min - this.getCurrentTime()) / min); //статистика за час "дельта т", для спільних позицій потрібно статистику збирати тільки один раз!!!
+                            e.doStatistics((min - this.getCurrentTime()) / min, min - this.getCurrentTime());
+                        }
                         else
                             e.doStatistics((this.getSimulationTime() - this.getCurrentTime()) / this.getSimulationTime()); 
                     }

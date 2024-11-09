@@ -31,6 +31,8 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
     private double timeServ;
     private double parametr; //середнє значення часу обслуговування
     private double paramDeviation; //середнє квадратичне відхилення часу обслуговування
+    private double[] values;
+    private double[] probabilities;
     private String distribution;
     private ArrayList<Double> timeOut = new ArrayList<>();
     private ArrayList<Integer> inP = new ArrayList<>();
@@ -43,6 +45,9 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
     private int num;  // номер каналу багатоканального переходу, що відповідає найближчий події
     private int number; // номер переходу за списком
     private double mean;  // спостережуване середнє значення кількості активних каналів переходу
+    private double sumTimeIn;
+    private double sumSpeed;
+    private int counterSum;
     private int observedMax;
     private int observedMin;
     private static int next = 0; //додано 1.10.2012
@@ -207,6 +212,9 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
     public String getProbabilityParamName() {
         return probabilityParamName;
     }
+
+    public void setValues(double[] values) { this.values = values; }
+    public void setProbabilities(double[] probabilities) { this.probabilities = probabilities; }
     
     public void setParametrParam(String paramName) {
         if (paramName == null) {
@@ -281,6 +289,14 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      */
     public double getMean() {
         return mean;
+    }
+
+    public double getMeanTimeIn() {
+        return sumTimeIn / counterSum;
+    }
+
+    public double getMeanSpeed() {
+        return sumSpeed / counterSum;
     }
 
     public double getObservedMax() {
@@ -360,6 +376,8 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
         if (a < 0) {
             JOptionPane.showMessageDialog(null, "Negative time delay was generated : time == " + a + ".\n Transition '" + this.name + "'.");
         }
+        sumTimeIn += a;
+        counterSum++;
         return a;
 
     }
@@ -397,14 +415,19 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
                 } else if (distribution.equalsIgnoreCase("unif")) {
                     timeServ = FunRand.unif(parametr - paramDeviation, parametr + paramDeviation);// 18.01.2013
                 } else if (distribution.equalsIgnoreCase("norm")) {
-
                     timeServ = FunRand.norm(parametr, paramDeviation);// added 18.01.2013
-
+                } else if (distribution.equalsIgnoreCase("erl")) {
+                    timeServ = FunRand.erlang(parametr, (int) paramDeviation);
+                } else if (distribution.equalsIgnoreCase("emp+unif")) {
+                    double distance = FunRand.emp(values, probabilities);
+                    double speed = FunRand.unif(parametr - paramDeviation, parametr + paramDeviation);
+                    sumSpeed += speed;
+                    timeServ = distance / speed * 60;
                 } else;
             } else {
                 timeServ = parametr; // 20.11.2012 тобто детерміноване значення
             }
-        } catch (ExceptionInvalidTimeDelay ex) {
+        } catch (Exception ex) {
             Logger.getLogger(PetriT.class.getName()).log(Level.SEVERE, null, ex);
         }
         return timeServ;

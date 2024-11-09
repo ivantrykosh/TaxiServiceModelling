@@ -17,6 +17,7 @@ public class PetriP extends PetriMainElement implements Cloneable, Serializable 
     private String name;
     private int number;
     private double mean;
+    private double sum;
     private static int next = 0;//додано 1.10.2012, лічильник об"єктів
     private int observedMax;
     private int observedMin;
@@ -132,6 +133,14 @@ public class PetriP extends PetriMainElement implements Cloneable, Serializable 
      */
     public void changeMean(double a) {
         mean = mean + (mark - mean) * a;
+    }
+
+    public void sumOfMarksMultiplyByTimeDelta(double timeDelta) {
+        sum += mark * timeDelta;
+    }
+
+    public double getSum() {
+        return sum;
     }
 
     /**
