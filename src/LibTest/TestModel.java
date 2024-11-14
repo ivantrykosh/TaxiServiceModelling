@@ -3,22 +3,30 @@ package LibTest;
 import LibNet.NetLibrary;
 import PetriObj.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 public class TestModel {
     public static void main(String[] args) throws ExceptionInvalidTimeDelay, ExceptionInvalidNetStructure {
+        int operators = 5;
+        int drivers = 10;
+        double meanCallArrival = 3.0;
+        double meanPhoneNumberDialing = 0.5;
+        double meanTaxiOrdering = 1.0;
+        double meanWaitingForCalling = 1.0;
+        double meanServing = 40.0;
+        double startingPrice = 20.0;
+        double pricePerKm = 3.0;
+        double daySalary = 1000.0;
+
         // task 1
         System.out.println("\n-------------------------TASK1-------------------------");
-        runModel(5, 10, true);
+        runModel(operators, drivers, true, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
 
         // task 2
         System.out.println("\n-------------------------TASK2-------------------------");
         double minOrderExecutionMeanTime = Double.MAX_VALUE;
         int numberOfOperators = 0;
-        for (int operators = 1; operators < 15; operators++) {
-            int drivers = 15 - operators;
-            double[] stats = runModel(operators, drivers, true);
+        for (operators = 1; operators < 15; operators++) {
+            drivers = 15 - operators;
+            double[] stats = runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
             if (stats[0] < minOrderExecutionMeanTime) {
                 minOrderExecutionMeanTime = stats[0];
                 numberOfOperators = operators;
@@ -31,9 +39,9 @@ public class TestModel {
         double maxRevenue = -Double.MAX_VALUE;
         numberOfOperators = 0;
         int numberOfDrivers = 0;
-        for (int operators = 1; operators < 100; operators++) {
-            for (int drivers = 1; drivers < 100; drivers++) {
-                double[] stats = runModel(operators, drivers, false);
+        for (operators = 1; operators < 25; operators++) {
+            for (drivers = 1; drivers < 25; drivers++) {
+                double[] stats = runModel(operators, drivers, false, false, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
                 if (stats[1] > maxRevenue) {
                     maxRevenue = stats[1];
                     numberOfOperators = operators;
@@ -42,53 +50,34 @@ public class TestModel {
             }
         }
         System.out.printf("\nMax revenue: %.3f; operators: %d; drivers: %d", maxRevenue, numberOfOperators, numberOfDrivers);
+
+        verification();
     }
 
-    private static double[] runModel(int operators, int drivers, boolean printStats) throws ExceptionInvalidTimeDelay, ExceptionInvalidNetStructure {
-        PetriNet model = NetLibrary.CreateNetmodel(operators, drivers);
+    private static double[] runModel(int operators, int drivers, boolean isProtocol, boolean printStatsValues, double meanCallArrival, double meanPhoneNumberDialing, double meanTaxiOrdering, double meanWaitingForCalling, double meanServing, double startingPrice, double pricePerKm, double daySalary) throws ExceptionInvalidTimeDelay, ExceptionInvalidNetStructure {
+        PetriNet model = NetLibrary.CreateNetModel(operators, drivers, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing);
         PetriSim petriSim = new PetriSim(model);
 
-        ArrayList<PetriSim> petriSims = new ArrayList<>();
-        petriSims.add(petriSim);
-
-        PetriObjModel petriObjModel = new PetriObjModel(petriSims);
-        petriObjModel.setIsProtokol(false);
+        PetriObjModel petriObjModel = new PetriObjModel(petriSim);
+        petriObjModel.setIsProtocol(isProtocol);
         double timeModelling = 1440; // 24H in minutes
         petriObjModel.go(timeModelling);
 
-//        System.out.println("---------------------------STATISTICS---------------------------------");
-//        System.out.println("\n Statistics of Petri net places:\n");
-//        petriObjModel.getListObj().forEach((it) -> {
-//            Arrays.stream(it.getNet().getListP()).forEach((place) -> {
-//                System.out.println("Place " + place.getName() + ": mean value = " + place.getMean() + "\n"
-//                        + "         max value = " + place.getObservedMax() + "\n"
-//                        + "         min value = " + place.getObservedMin() + "\n");
-//            });
-//        });
-//        System.out.println("\n Statistics of Petri net transitions:\n");
-//        petriObjModel.getListObj().forEach((it) -> {
-//            Arrays.stream(it.getNet().getListT()).forEach((transition) -> {
-//                System.out.println("Transition " + transition.getName() + " has mean value = " + transition.getMean() + "\n"
-//                        + "         max value = " + transition.getObservedMax() + "\n"
-//                        + "         min value = " + transition.getObservedMin() + "\n");
-//            });
-//        });
-
-        int servedClients = petriObjModel.getListObj().get(0).getNet().getListP()[21].getMark();
-        double meanTimeInQueue = petriObjModel.getListObj().get(0).getNet().getListP()[5].getSum() / servedClients;
-        double meanTimeInMoveToClient = petriObjModel.getListObj().get(0).getNet().getListT()[24].getMeanTimeIn();
-        double meanTimeInServeClient = petriObjModel.getListObj().get(0).getNet().getListT()[25].getMeanTimeIn();
+        int notServedClients = petriObjModel.getObject().getNet().getListP()[18].getMark();
+        int servedClients = petriObjModel.getObject().getNet().getListP()[21].getMark();
+        double meanTimeInQueue = petriObjModel.getObject().getNet().getListP()[5].getSum() / servedClients;
+        double meanTimeInMoveToClient = petriObjModel.getObject().getNet().getListT()[24].getMeanTimeIn();
+        double meanTimeInServeClient = petriObjModel.getObject().getNet().getListT()[25].getMeanTimeIn();
         double orderExecutionMeanTime = meanTimeInQueue + meanTimeInMoveToClient + meanTimeInServeClient;
 
-        double startingPrice = 20.0;
-        double pricePerKm = 3.0;
-        double daySalary = 1000.0;
-        double meanSpeed = petriObjModel.getListObj().get(0).getNet().getListT()[24].getMeanSpeed();
+        double meanSpeed = petriObjModel.getObject().getNet().getListT()[24].getMeanSpeed();
         double meanServingPrice = startingPrice + meanSpeed * (meanTimeInServeClient / 60) * pricePerKm;
         double revenue = meanServingPrice * servedClients - daySalary * (operators + drivers);
 
-        if (printStats) {
+        if (printStatsValues) {
             System.out.printf("\nOperators: %d; drivers: %d", operators, drivers);
+            System.out.printf("\nNumber of not served clients: %d", notServedClients);
+            System.out.printf("\nNumber of served clients: %d", servedClients);
             System.out.printf("\nMean time in queue: %.3f", meanTimeInQueue);
             System.out.printf("\nOrder execution mean time: %.3f", orderExecutionMeanTime);
             System.out.printf("\nMean serving price: %.3f", meanServingPrice);
@@ -97,5 +86,41 @@ public class TestModel {
         }
 
         return new double[] { orderExecutionMeanTime, revenue };
+    }
+
+    private static void verification() throws ExceptionInvalidTimeDelay, ExceptionInvalidNetStructure {
+        int operators = 5;
+        int drivers = 10;
+        double meanCallArrival = 3.0;
+        double meanPhoneNumberDialing = 0.5;
+        double meanTaxiOrdering = 1.0;
+        double meanWaitingForCalling = 1.0;
+        double meanServing = 40.0;
+        double startingPrice = 20.0;
+        double pricePerKm = 3.0;
+        double daySalary = 1000.0;
+
+        System.out.println("\n\n-------------------------VERIFICATION-------------------------");
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        operators = 1;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        operators = 5; drivers = 20;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        drivers = 10; meanCallArrival = 1.5;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        meanCallArrival = 3.0;  meanPhoneNumberDialing = 2.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        meanPhoneNumberDialing = 0.5; meanTaxiOrdering = 2.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        meanTaxiOrdering = 1.0; meanWaitingForCalling = 0.5;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        meanWaitingForCalling = 1.0; meanServing = 20.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        meanServing = 40.0; startingPrice = 50.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        startingPrice = 20.0; pricePerKm = 6.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        pricePerKm = 3.0; daySalary = 500.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
     }
 }

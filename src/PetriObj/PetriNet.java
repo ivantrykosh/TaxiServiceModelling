@@ -130,15 +130,6 @@ public class PetriNet implements Cloneable, Serializable {
     }
 
     /**
-     * Sets name of Petri net
-     *
-     * @param s the name of Petri net
-     */
-    public void setName(String s) {
-        name = s;
-    }
-
-    /**
      *
      * @return array of Petri net places
      */
@@ -168,138 +159,6 @@ public class PetriNet implements Cloneable, Serializable {
      */
     public ArcOut[] getArcOut() {
         return getListOut();
-    }
-
-    /**
-     * Finds the place of Petri net with given name
-     *
-     * @param s name of place
-     * @return number of place with given name
-     */
-    public int strToNumP(String s) {
-        
-        int a = -1;
-        for (PetriP e : ListP) {
-            if (s.equalsIgnoreCase(e.getName())) {
-                a = e.getNumber();
-                
-            }
-        }
-        return a;
-    }
-
-    /**
-     * Determines the quantity of markers in place with given name
-     *
-     * @param s name of place
-     * @return quantity of markers in place with given name
-     */
-    public int getCurrentMark(String s) {
-        int a = ListP[PetriNet.this.strToNumP(s)].getMark();
-        return a;
-    }
-
-    /**
-     * Determines the mean value of markers in place with given name
-     *
-     * @param s name of place
-     * @return the mean value of quantity of markers in place with given name
-     */
-    public double getMeanMark(String s) {
-        double a = ListP[PetriNet.this.strToNumP(s)].getMean();
-        return a;
-    }
-
-    /**
-     * Determines quantity of active channels of transition with given name
-     *
-     * @param s name of transition
-     * @return quantity of active channels of transition
-     */
-    public int getCurrentBuffer(String s) {
-        int a = ListT[strToNumT(s)].getBuffer();
-        return a;
-    }
-
-    /**
-     * Determines mean value of active channels of transition with given name
-     *
-     * @param s name of transition
-     * @return the mean value of quantity of active channels of transition
-     */
-    public double getMeanBuffer(String s) {
-        double a = ListT[strToNumT(s)].getMean();
-        return a;
-    }
-
-    /**
-     * Finds the place of Petri net with given name and given set of places
-     *
-     * @param s name of place
-     * @param pp array of places
-     * @return the number of place
-     */
-    public int strToNumP(String s, PetriP[] pp) {
-   
-        int a = -1;
-        for (PetriP e : pp) {
-            if (s.equalsIgnoreCase(e.getName())) {
-                a = e.getNumber();
-                
-            }
-        }
-        return a;
-    }
-
-    /**
-     * Finds the transition of Petri net with given name
-     *
-     * @param s name of transition
-     * @return the number of transition of Petri net with given name
-     */
-    public int strToNumT(String s) {
-        
-        int a = -1;
-        for (PetriT e : ListT) {
-            if (s.equalsIgnoreCase(e.getName())) {
-                a = e.getNumber();
-                
-            }
-        }
-        return a;
-    }
-
-    /**
-     *
-     */
-    public void printArcs() //додано 1.10.2012
-    {
-        System.out.println("Petri net " + name + " arcs: " + getListIn().length + " input arcs snd " + getListOut().length + " output arcs");
-
-        for (ArcIn arcs : getListIn()) {
-            arcs.print();
-        }
-        for (ArcOut arcs : getListOut()) {
-            arcs.print();
-        }
-    }
-
-    /**
-     *
-     */
-    public void printMark() {
-        System.out.print("Mark in Net  " + this.getName() + "   ");
-        for (PetriP position: ListP) {
-            System.out.print(position.getMark() + "  ");
-        }
-        System.out.println();
-    }
-    public void printBuffer() {
-        System.out.print("Buffer in Net  " + this.getName() + "   ");
-        for (PetriT transition: ListT) {
-            System.out.print(transition.getBuffer() + "  ");
-        }
-        System.out.println();
     }
     
     @Override
@@ -332,29 +191,4 @@ public class PetriNet implements Cloneable, Serializable {
 
         return net;
     }
-    
-    public boolean hasParameters() { // added by Katya 08.12.2016
-        for (PetriP petriPlace : ListP) {
-            if (petriPlace.markIsParam()) {
-                return true;
-            }
-        }
-        for (PetriT petriTran : ListT) {
-            if (petriTran.distributionIsParam() || petriTran.parametrIsParam() || petriTran.priorityIsParam() || petriTran.probabilityIsParam()) {
-                return true;
-            }
-        }
-        for (ArcIn arcIn : getListIn()) {
-            if (arcIn.infIsParam() || arcIn.kIsParam()) {
-                return true;
-            }
-        }
-        for (ArcOut arcOut : getListOut()) {
-            if (arcOut.kIsParam()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

@@ -21,20 +21,6 @@ public class ArcOut implements Cloneable, Serializable {
     private String nameP;
     private static int next = 0;
     private int number;
-    
-    // whether k is a parameter; added by Katya 08.12.2016
-    private boolean kIsParam = false;
-    // param name
-    private String kParamName = null;
-
-    /**
-     *
-     */
-    public ArcOut() {
-        k = 1;
-        number = next;
-        next++;
-    }
 
     /**
      * @param T number of transition
@@ -65,30 +51,6 @@ public class ArcOut implements Cloneable, Serializable {
         next++;
     }
 
-    public ArcOut(ArcOut arcOut) {
-        this(arcOut.getNumT(), arcOut.getNumP(), arcOut.getQuantity());
-    }
-
-    public boolean kIsParam() {
-        return kIsParam;
-    }
-    
-    public String getKParamName() {
-        return kParamName;
-    }
-    
-    public void setKParam(String paramName) {
-        if (paramName == null) {
-            kIsParam = false;
-            kParamName = null;
-        } else {
-            kIsParam = true;
-            kParamName = paramName;
-            k = 1;
-        }
-    }
-    
-    
     /**
      * Set the counter of output arcs to zero.
      */
@@ -107,26 +69,10 @@ public class ArcOut implements Cloneable, Serializable {
 
     /**
      *
-     * @param K arc multiplicity
-     */
-    public void setQuantity(int K) {
-        k = K;
-    }
-
-    /**
-     *
      * @return the number of place that is end of the arc
      */
     public int getNumP() {
         return numP;
-    }
-
-    /**
-     *
-     * @param n the number of place that is end of the arc
-     */
-    public void setNumP(int n) {
-        numP = n;
     }
 
     /**
@@ -136,15 +82,6 @@ public class ArcOut implements Cloneable, Serializable {
     public int getNumT() {
         return numT;
     }
-
-    /**
-     *
-     * @param n number of transition that is beginning of the arc
-     */
-    public void setNumT(int n) {
-        numT = n;
-    }
-
     /**
      *
      * @return name of transition that is the beginning of the arc
@@ -190,8 +127,7 @@ public class ArcOut implements Cloneable, Serializable {
 
     /**
      *
-     * @return ArcOut object with parameters which copy current parameters of
- this arc
+     * @return ArcOut object with parameters which copy current parameters of this arc
      * @throws java.lang.CloneNotSupportedException if Petri net has invalid structure
      */
     @Override
@@ -201,10 +137,4 @@ public class ArcOut implements Cloneable, Serializable {
         return arc;
 
     }
-
-    public void printParameters() {
-        System.out.println("This arc has direction from  transition  with number " + numT + " to place with number " + numP
-                + " and has " + k + " value of multiplicity");
-    }
-
 }

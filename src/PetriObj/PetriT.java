@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 
 /**
  * This class for creating the transition of Petri net
@@ -25,11 +24,10 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
 
     private int buffer;
     private int priority;
-    private double probability;
 
     private double minTime;
     private double timeServ;
-    private double parametr; //середнє значення часу обслуговування
+    private double parameter; //середнє значення часу обслуговування
     private double paramDeviation; //середнє квадратичне відхилення часу обслуговування
     private double[] values;
     private double[] probabilities;
@@ -44,7 +42,7 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
 
     private int num;  // номер каналу багатоканального переходу, що відповідає найближчий події
     private int number; // номер переходу за списком
-    private double mean;  // спостережуване середнє значення кількості активних каналів переходу
+    private double sum;
     private double sumTimeIn;
     private double sumSpeed;
     private int counterSum;
@@ -55,17 +53,6 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
     private ArrayList<Double> inMoments = new ArrayList<>();
     private ArrayList<Double> outMoments = new ArrayList<>();
     private boolean moments = false;
-    
-    // whether parametr, distribution, priority & probability are parameters; added by Katya 08.12.2016
-    private boolean parametrIsParam = false;
-    private boolean distributionIsParam = false;
-    private boolean priorityIsParam = false;
-    private boolean probabilityIsParam = false;
-    // param names
-    private String parametrParamName = null;
-    private String distributionParamName = null;
-    private String priorityParamName = null;
-    private String probabilityParamName = null;
 
     /**
      *
@@ -74,191 +61,32 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      */
     public PetriT(String n, double tS) {
         name = n;
-        parametr = tS;
+        parameter = tS;
         paramDeviation = 0;
-        timeServ = parametr;
+        timeServ = parameter;
         buffer = 0;
 
         minTime = Double.MAX_VALUE; // не очікується вихід маркерів переходу
         num = 0;
-        mean = 0;
         observedMax = buffer;
         observedMin = buffer;
         priority = 0;
-        probability = 1.0;
         distribution = null;
         number = next;
         next++;
+        id = null;
         timeOut.add(Double.MAX_VALUE); // не очікується вихід маркерів з каналів переходу
         this.minEvent();
     }
 
-    
-     /**
-     *
-     * @param n name of transition
-     * @param tS timed delay
-     * @param prior value of priority
-     */
-    public PetriT(String n, double tS, int prior) { //changed by Inna 21.03.2018
-        this(n, tS); 
-      
-        priority = prior;
-    }
-
-    /**
-     *
-     * @param n name of transition
-     * @param tS timed delay
-     * @param prob value of probability
-     */
-    public PetriT(String n, double tS, double prob) { //changed by Inna 21.03.2018
-        this(n,tS);
-        
-         probability = prob;
-    }
-    /**
-     *
-     * @param n name of transition
-     */
-    public PetriT(String n) { //changed by Inna 21.03.2018
-        this(n,0.0); //parametr = 0.0
-    
-    }
-
-     /**
-     *
-     * @param id unique number for saving on server
-     * @param n name of transition
-     * @param tS timed delay
-     */
     public PetriT(String id, String n, double tS) {
-       this(n,tS);
-       this.id = id;
-    }
-
-    /**
-     * @param id unique number for saving on server*
-     * @param n name of transition
-     * @param tS timed delay
-     * @param prior value of priority
-     */
-    public PetriT(String id, String n, double tS, int prior) { //changed by Inna 21.03.2018
-        this(id, n, tS); 
-
-        priority = prior;
-    }
-
-    public PetriT(PetriT transition) {
-        this(transition.getName(), transition.getParametr());
-        setDistribution(transition.getDistribution(), transition.getParametr());
-        priority = transition.getPriority();
-        probability = transition.getProbability();
-        number = next;
-        next++;
-        buffer = transition.getBuffer();
-        paramDeviation = transition.getParamDeviation();
-    }
-
-    /**
-     * @param id unique number for saving on server*
-     * @param n name of transition
-     * @param tS timed delay
-     * @param prob value of probability
-     */
-    public PetriT(String id, String n, double tS, double prob) { //changed by Inna 21.03.2018
-        this(id, n,tS);
-        
-         probability = prob;
-    }
-    /**
-     * @param id unique number for saving on server*
-     * @param n name of transition
-     */
-    public PetriT(String id, String n) { //changed by Inna 21.03.2018
-        this(id, n,0.0); //parametr = 0.0
-    
-    }
-
-   
-    public boolean parametrIsParam() {
-        return parametrIsParam;
-    }
-    
-    public boolean distributionIsParam() {
-        return distributionIsParam;
-    }
-    
-    public boolean priorityIsParam() {
-        return priorityIsParam;
-    }
-    
-    public boolean probabilityIsParam() {
-        return probabilityIsParam;
-    }
-    
-    public String getParametrParamName() {
-        return parametrParamName;
-    }
-    
-    public String getDistributionParamName() {
-        return distributionParamName;
-    }
-    
-    public String getPriorityParamName() {
-        return priorityParamName;
-    }
-    
-    public String getProbabilityParamName() {
-        return probabilityParamName;
+        this(n, tS);
+        this.id = id;
     }
 
     public void setValues(double[] values) { this.values = values; }
     public void setProbabilities(double[] probabilities) { this.probabilities = probabilities; }
-    
-    public void setParametrParam(String paramName) {
-        if (paramName == null) {
-            parametrIsParam = false;
-            parametrParamName = null;
-        } else {
-            parametrIsParam = true;
-            parametrParamName = paramName;
-            parametr = 0.0;
-        }
-    }
-    
-    public void setDistributionParam(String paramName) {
-        if (paramName == null) {
-            distributionIsParam = false;
-            distributionParamName = null;
-        } else {
-            distributionIsParam = true;
-            distributionParamName = paramName;
-            distribution = null;
-        }
-    }
-    
-    public void setPriorityParam(String paramName) {
-        if (paramName == null) {
-            priorityIsParam = false;
-            priorityParamName = null;
-        } else {
-            priorityIsParam = true;
-            priorityParamName = paramName;
-            priority = 0;
-        }
-    }
-    
-    public void setProbabilityParam(String paramName) {
-        if (paramName == null) {
-            probabilityIsParam = false;
-            probabilityParamName = null;
-        } else {
-            probabilityIsParam = true;
-            probabilityParamName = paramName;
-            probability = 1;
-        }
-    }
+
     /**
      * Set the counter of transitions to zero.
      */
@@ -266,29 +94,19 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
          next = 0;
     }
 
-    /**
-     * Recalculates the mean value
-     *
-     * @param a value for recalculate of mean value (value equals product of
-     * buffer and time divided by time modeling)
-     */
-    public void changeMean(double a) {//if(buffer>0)
-        // mean=mean+buffer*a;
-        mean = mean + (buffer - mean) * a;
+    public void sumOfBufferMultiplyByTimeDelta(double timeDelta) {
+        sum += buffer * timeDelta;
     }
+
+    public double getSum() {
+        return sum;
+    }
+
     /**
      * @return the timeOut
      */
     public ArrayList<Double> getTimeOut() {
         return timeOut;
-    }
-
-    /**
-     *
-     * @return mean value of quantity of markers
-     */
-    public double getMean() {
-        return mean;
     }
 
     public double getMeanTimeIn() {
@@ -326,23 +144,6 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
 
     /**
      *
-     * @return the value of priority
-     */
-    public double getProbability() {
-        return probability;
-    }
-
-    /**
-     * Set the new value of probability
-     *
-     * @param v the value of probability
-     */
-    public void setProbability(double v) {
-        probability = v;
-    }
-
-    /**
-     *
      * @return the numbers of planed moments of markers outputs
      */
     public int getBuffer() {
@@ -359,8 +160,8 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      */
     public void setDistribution(String s, double param) {
         distribution = s;
-        parametr = param;
-        timeServ = parametr; // додано 26.12.2011, тоді, якщо s==null, то передається час обслуговування
+        parameter = param;
+        timeServ = parameter; // додано 26.12.2011, тоді, якщо s==null, то передається час обслуговування
     }
 
     /**
@@ -374,7 +175,7 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
             a = generateTimeServ();  // додано 6 серпня
         }
         if (a < 0) {
-            JOptionPane.showMessageDialog(null, "Negative time delay was generated : time == " + a + ".\n Transition '" + this.name + "'.");
+            System.out.println("Negative time delay was generated : time == " + a + ".\n Transition '" + this.name + "'.");
         }
         sumTimeIn += a;
         counterSum++;
@@ -386,20 +187,8 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      *
      * @return mean value of service time
      */
-    public double getParametr() {
-        return parametr;
-
-    }
-
-    /**
-     * Set distribution parameter of service time
-     *
-     * @param p the mean value of service time
-     */
-    public void setParametr(double p) {
-        parametr = p;  // додано 26.12.2011
-        timeServ = parametr; // 20.11.2012 
-
+    public double getParameter() {
+        return parameter;
     }
 
     /**
@@ -411,21 +200,21 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
         try {
             if (distribution != null) {
                 if (distribution.equalsIgnoreCase("exp")) {
-                    timeServ = FunRand.exp(parametr);
+                    timeServ = FunRand.exp(parameter);
                 } else if (distribution.equalsIgnoreCase("unif")) {
-                    timeServ = FunRand.unif(parametr - paramDeviation, parametr + paramDeviation);// 18.01.2013
+                    timeServ = FunRand.unif(parameter - paramDeviation, parameter + paramDeviation);// 18.01.2013
                 } else if (distribution.equalsIgnoreCase("norm")) {
-                    timeServ = FunRand.norm(parametr, paramDeviation);// added 18.01.2013
+                    timeServ = FunRand.norm(parameter, paramDeviation);// added 18.01.2013
                 } else if (distribution.equalsIgnoreCase("erl")) {
-                    timeServ = FunRand.erlang(parametr, (int) paramDeviation);
+                    timeServ = FunRand.erlang(parameter, (int) paramDeviation);
                 } else if (distribution.equalsIgnoreCase("emp+unif")) {
-                    double distance = FunRand.emp(values, probabilities);
-                    double speed = FunRand.unif(parametr - paramDeviation, parametr + paramDeviation);
+                    double distance = FunRand.empiric(values, probabilities);
+                    double speed = FunRand.unif(parameter - paramDeviation, parameter + paramDeviation);
                     sumSpeed += speed;
                     timeServ = distance / speed * 60;
                 } else;
             } else {
-                timeServ = parametr; // 20.11.2012 тобто детерміноване значення
+                timeServ = parameter; // 20.11.2012 тобто детерміноване значення
             }
         } catch (Exception ex) {
             Logger.getLogger(PetriT.class.getName()).log(Level.SEVERE, null, ex);
@@ -439,14 +228,6 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      */
     public String getName() {
         return name;
-    }
-
-    /**
-     *
-     * @param s name of transition
-     */
-    public void setName(String s) {
-        name = s;
     }
 
     /**
@@ -475,29 +256,10 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
     }
 
     /**
-     *
-     * @param n - the number of place that is added to input places of
-     * transition
-     */
-    public void addInP(int n) {
-        inP.add(n);
-    }
-
-    /**
-     *
-     * @param n - the number of place that is added to output places of
-     * transition
-     */
-    public void addOutP(int n) {
-        getOutP().add(n);
-    }
-
-    /**
      * This method determines the places which is input for the transition. <br>
      * The class PetriNet use this method for creating net with given arrays of
      * places, transitions, input arcs and output arcs.
      *
-     * @param inPP array of places  // не використовується методом, видалити
      * @param arcs array of input arcs
      * @throws PetriObj.ExceptionInvalidTimeDelay if Petri net has invalid structure
      */
@@ -531,7 +293,6 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      * The class PetriNet use this method for creating net with given arrays of
      * places, transitions, input arcs and output arcs.
      *
-     * @param inPP array of places
      * @param arcs array of output arcs
      * @throws PetriObj.ExceptionInvalidTimeDelay if Petri net has invalid structure
      */
@@ -547,15 +308,6 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
         if (getOutP().isEmpty()) {
             throw new ExceptionInvalidTimeDelay("Transition " + this.getName() + " hasn't output positions!");
         }
-    }
-
-    /**
-     *
-     * @param n the channel number of transition accordance to nearest event
-     */
-    public void setNum(int n) {
-        num = n;
-
     }
 
     /**
@@ -590,7 +342,7 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
                 break;
             }
         }
-        return a == true && b == true;
+        return a && b;
 
     }
 
@@ -603,7 +355,7 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      * @param currentTime current time
      */
     public void actIn(PetriP[] pp, double currentTime) {
-        if (this.condition(pp) == true) {
+        if (this.condition(pp)) {
             for (int i = 0; i < inP.size(); i++) {
                 pp[inP.get(i)].decreaseMark(quantIn.get(i));
             }
@@ -677,31 +429,6 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
 
     /**
      *
-     */
-    public void print() {
-        for (double time: timeOut) {
-            System.out.println(time + "   " + this.getName());
-        }
-    }
-
-    public void printParameters() {
-        System.out.println("Transition " + name + " has such parameters: \n"
-                + " number " + number + ", probability " + probability + ", priority " + priority
-                + "\n parameter " + parametr + ", distribution " + distribution
-                + ", time of service (generate) " + this.getTimeServ());
-        System.out.println("This transition has input places with such numbers: ");
-        for (Integer in : inP) {
-            System.out.print(in.toString() + "  ");
-        }
-        System.out.println("\n and output places with such numbers: ");
-        for (Integer out : getOutP()) {
-            System.out.print(out.toString() + "  ");
-        }
-        System.out.println("\n");
-    }
-
-    /**
-     *
      * @return list of transition input places
      */
     public ArrayList<Integer> getInP() {
@@ -742,10 +469,9 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
      */
     @Override
     public PetriT clone() throws CloneNotSupportedException { // 30.11.2015
-        PetriT T = new PetriT(name, parametr);
-        T.setDistribution(distribution, parametr);
+        PetriT T = new PetriT(name, parameter);
+        T.setDistribution(distribution, parameter);
         T.setPriority(priority);
-        T.setProbability(probability);
         T.setNumber(number); //номер зберігається для відтворення зв"язків між копіями позицій та переходів
         T.setBuffer(buffer);
         T.setParamDeviation(paramDeviation);
@@ -771,127 +497,10 @@ public class PetriT extends PetriMainElement implements Cloneable, Serializable 
     }
 
     /**
-     * @return the inMoments
-     */
-    public ArrayList<Double> getInMoments() {
-        return inMoments;
-    }
-
-    /**
-     * @param inMoments the inMoments to set
-     */
-    public void setInMoments(ArrayList<Double> inMoments) {
-        this.inMoments = inMoments;
-    }
-
-    /**
-     * @return the outMoments
-     */
-    public ArrayList<Double> getOutMoments() {
-        return outMoments;
-    }
-
-    /**
-     * @param outMoments the outMoments to set
-     */
-    public void setOutMoments(ArrayList<Double> outMoments) {
-        this.outMoments = outMoments;
-    }
-
-    /**
-     * @return the moments
-     */
-    public boolean isMoments() {
-        return moments;
-    }
-
-    /**
-     * @param moments the moments to set
-     */
-    public void setMoments(boolean moments) {
-        this.moments = moments;
-    }
-    
-    
-    public class EventMoments{
-       private List<Interval> list = new ArrayList<>();
-
-        /**
-         * @return the list
-         */
-        public List<Interval> getList() {
-            return list;
-        }
-
-        /**
-         * @param list the list to set
-         */
-        public void setList(List<Interval> list) {
-            this.list = list;
-        }
-        
-        class Interval{
-            private Double in;
-            private Double out;
-            Interval(Double t1, Double t2){
-                in = t1;
-                out = t2;
-            }
-
-            /**
-             * @return the in
-             */
-            public Double getIn() {
-                return in;
-            }
-
-            /**
-             * @return the out
-             */
-            public Double getOut() {
-                return out;
-            }
-       }
-       
-        public EventMoments(List<Double> listIn, List<Double> listOut){
-            int j;
-            for(j=0; j< listOut.size(); j++){
-                list.add( new Interval(listIn.get(j),listOut.get(j)) );
-            }
-            if(j<listIn.size()){
-                for(j=listOut.size(); j<listIn.size();j++)
-                    list.add(new Interval(listIn.get(j),Double.MAX_VALUE));
-            }
-     
-        }
-        
-        
-    } 
-        
-    public void printEventMoments() {
-        if (moments) {
-            EventMoments events = new EventMoments(inMoments, outMoments);
-            System.out.println(this.getName());
-            for (EventMoments.Interval interval : events.getList()) {
-                System.out.println(interval.getIn() + "  " + interval.getOut());
-            }
-        } else{
-            System.out.println("Set parameter 'moments' = true");
-        }
-    }
-    
-    /**
      * @return the id
      */
     public String getId() {
         return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(String id) {
-        this.id = id;
     }
 
 }
