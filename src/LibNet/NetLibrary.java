@@ -16,7 +16,7 @@ public class NetLibrary {
 	 * @param drivers number of drivers in taxi service
 	 * @return created Petri net
      */
-	public static PetriNet CreateNetModel(int operators, int drivers, double meanCallArrival, double meanPhoneNumberDialing, double meanTaxiOrdering, double meanWaitingForCalling, double meanServing) throws ExceptionInvalidTimeDelay {
+	public static PetriNet CreateNetModel(int operators, int drivers, double meanCallArrival, double meanPhoneNumberDialing, double meanTaxiOrdering, double meanWaitingForCalling, double meanServing, int maxQueue) throws ExceptionInvalidTimeDelay {
 		double[] distances = { 0, 5, 8, 9, 11, 12, 20 };
 		double[] distanceProbabilities = { 0, 0.1, 0.3, 0.55, 0.72, 0.95, 1.0 };
 
@@ -119,16 +119,16 @@ public class NetLibrary {
 		d_In.add(new ArcIn(d_P.get(6),d_T.get(2),1));
 		d_In.add(new ArcIn(d_P.get(11),d_T.get(13),1));
 		d_In.add(new ArcIn(d_P.get(17),d_T.get(23),1));
-		d_In.add(new ArcIn(d_P.get(5),d_T.get(23),10));
+		d_In.add(new ArcIn(d_P.get(5),d_T.get(23),maxQueue));
 		d_In.get(23).setInf(true);
 		d_In.add(new ArcIn(d_P.get(9),d_T.get(11),1));
-		d_In.add(new ArcIn(d_P.get(5),d_T.get(11),10));
+		d_In.add(new ArcIn(d_P.get(5),d_T.get(11),maxQueue));
 		d_In.get(25).setInf(true);
 		d_In.add(new ArcIn(d_P.get(3),d_T.get(5),1));
-		d_In.add(new ArcIn(d_P.get(5),d_T.get(5),10));
+		d_In.add(new ArcIn(d_P.get(5),d_T.get(5),maxQueue));
 		d_In.get(27).setInf(true);
 		d_In.add(new ArcIn(d_P.get(13),d_T.get(17),1));
-		d_In.add(new ArcIn(d_P.get(5),d_T.get(17),10));
+		d_In.add(new ArcIn(d_P.get(5),d_T.get(17),maxQueue));
 		d_In.get(29).setInf(true);
 		d_In.add(new ArcIn(d_P.get(4),d_T.get(6),1));
 		d_In.add(new ArcIn(d_P.get(9),d_T.get(9),1));

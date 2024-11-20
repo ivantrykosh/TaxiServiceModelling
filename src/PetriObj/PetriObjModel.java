@@ -6,6 +6,7 @@ package PetriObj;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * This class provides constructing Petri object model.<br>
@@ -68,6 +69,10 @@ public class PetriObjModel implements Serializable, Cloneable  {
      */
     public PetriSim getObject() { return object; }
 
+    public void go(double timeModeling) {
+        go(timeModeling, (delta) -> {}, -1.0);
+    }
+
     /**
      * Simulating from zero time until the time equal time modeling.<br>
      * Simulation protocol is printed on console.
@@ -75,7 +80,7 @@ public class PetriObjModel implements Serializable, Cloneable  {
      * @param timeModeling time modeling
      * 
      */
-    public void go(double timeModeling) {
+    public void go(double timeModeling, Consumer<Double> doStats, double transitionTime) {
         double min;
         this.setSimulationTime(timeModeling);   
         this.setCurrentTime(0.0);
@@ -90,18 +95,24 @@ public class PetriObjModel implements Serializable, Cloneable  {
             System.out.println("Marks in Net after input:");
             object.printMark();
         }
-
         while (this.getCurrentTime() < this.getSimulationTime()) {
             min = object.getTimeMin();  // Час найближчої події
 
-            if (isStatistics()) {
-               if (min > 0) {
-                    if (min < this.getSimulationTime()) {
-                        object.doStatistics(min - this.getCurrentTime());
-                    } else {
-                        object.doStatistics(this.getSimulationTime() - this.getCurrentTime());
+            if (this.getCurrentTime() > transitionTime) {
+                if (isStatistics()) {
+                   if (min > 0) {
+                        if (min < this.getSimulationTime()) {
+                            object.doStatistics(min - this.getCurrentTime());
+                            doStats.accept(min - this.getCurrentTime());
+                        } else {
+                            object.doStatistics(this.getSimulationTime() - this.getCurrentTime());
+                            doStats.accept(this.getSimulationTime() - this.getCurrentTime());
+                        }
                     }
                 }
+            } else {
+                object.getNet().getListP()[21].clearMarks();
+                object.getNet().getListP()[18].clearMarks();
             }
 
            this.setCurrentTime(min); // Просування часу

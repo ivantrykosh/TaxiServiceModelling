@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 public class PetriP extends PetriMainElement implements Cloneable, Serializable {
 
-    private int mark;
+    public int mark;
     private String name;
     private int number;
     private double sum;
@@ -64,6 +64,10 @@ public class PetriP extends PetriMainElement implements Cloneable, Serializable 
 
     public double getSum() {
         return sum;
+    }
+
+    public void clearMarks() {
+        this.mark = 0;
     }
 
     /**

@@ -15,10 +15,12 @@ public class TestModel {
         double startingPrice = 20.0;
         double pricePerKm = 3.0;
         double daySalary = 1000.0;
+        int maxQueue = 10;
+        double timeModelling = 1440; // 24H in minutes
 
         // task 1
         System.out.println("\n-------------------------TASK1-------------------------");
-        runModel(operators, drivers, true, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, true, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
 
         // task 2
         System.out.println("\n-------------------------TASK2-------------------------");
@@ -26,7 +28,7 @@ public class TestModel {
         int numberOfOperators = 0;
         for (operators = 1; operators < 15; operators++) {
             drivers = 15 - operators;
-            double[] stats = runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+            double[] stats = runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
             if (stats[0] < minOrderExecutionMeanTime) {
                 minOrderExecutionMeanTime = stats[0];
                 numberOfOperators = operators;
@@ -41,7 +43,7 @@ public class TestModel {
         int numberOfDrivers = 0;
         for (operators = 1; operators < 25; operators++) {
             for (drivers = 1; drivers < 25; drivers++) {
-                double[] stats = runModel(operators, drivers, false, false, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+                double[] stats = runModel(operators, drivers, false, false, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
                 if (stats[1] > maxRevenue) {
                     maxRevenue = stats[1];
                     numberOfOperators = operators;
@@ -54,13 +56,12 @@ public class TestModel {
         verification();
     }
 
-    private static double[] runModel(int operators, int drivers, boolean isProtocol, boolean printStatsValues, double meanCallArrival, double meanPhoneNumberDialing, double meanTaxiOrdering, double meanWaitingForCalling, double meanServing, double startingPrice, double pricePerKm, double daySalary) throws ExceptionInvalidTimeDelay, ExceptionInvalidNetStructure {
-        PetriNet model = NetLibrary.CreateNetModel(operators, drivers, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing);
+    private static double[] runModel(int operators, int drivers, boolean isProtocol, boolean printStatsValues, double meanCallArrival, double meanPhoneNumberDialing, double meanTaxiOrdering, double meanWaitingForCalling, double meanServing, double startingPrice, double pricePerKm, double daySalary, int maxQueue, double timeModelling) throws ExceptionInvalidTimeDelay, ExceptionInvalidNetStructure {
+        PetriNet model = NetLibrary.CreateNetModel(operators, drivers, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, maxQueue);
         PetriSim petriSim = new PetriSim(model);
 
         PetriObjModel petriObjModel = new PetriObjModel(petriSim);
         petriObjModel.setIsProtocol(isProtocol);
-        double timeModelling = 1440; // 24H in minutes
         petriObjModel.go(timeModelling);
 
         int notServedClients = petriObjModel.getObject().getNet().getListP()[18].getMark();
@@ -99,28 +100,32 @@ public class TestModel {
         double startingPrice = 20.0;
         double pricePerKm = 3.0;
         double daySalary = 1000.0;
+        int maxQueue = 10;
+        double timeModelling = 1440; // 24H in minutes
 
         System.out.println("\n\n-------------------------VERIFICATION-------------------------");
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         operators = 1;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         operators = 5; drivers = 20;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         drivers = 10; meanCallArrival = 1.5;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         meanCallArrival = 3.0;  meanPhoneNumberDialing = 2.0;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         meanPhoneNumberDialing = 0.5; meanTaxiOrdering = 2.0;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         meanTaxiOrdering = 1.0; meanWaitingForCalling = 0.5;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
-        meanWaitingForCalling = 1.0; meanServing = 20.0;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
+        meanWaitingForCalling = 1.0; maxQueue = 20;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
+        maxQueue = 10; meanServing = 20.0;
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         meanServing = 40.0; startingPrice = 50.0;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         startingPrice = 20.0; pricePerKm = 6.0;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
         pricePerKm = 3.0; daySalary = 500.0;
-        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary);
+        runModel(operators, drivers, false, true, meanCallArrival, meanPhoneNumberDialing, meanTaxiOrdering, meanWaitingForCalling, meanServing, startingPrice, pricePerKm, daySalary, maxQueue, timeModelling);
     }
 }
